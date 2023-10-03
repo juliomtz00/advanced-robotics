@@ -1,7 +1,20 @@
 import time
+import argparse
 # Universal standar to work with numerical data in Python
 import numpy as np
-import random
+
+parser = argparse.ArgumentParser(prog = 'Sequeantial Odometry',
+                                 description = 'Real time odometry estimation')
+
+parser.add_argument('-e', '--encoder_pulses',type = int, help = 'Use the following syntaxis: -e ENCODER_PULSES')
+parser.add_argument('-p', '--pulses_per_second',type = int, nargs = 2, help = ' Use the following syntaxis: -p LEFT_PULSES RIGHT_PULSES')
+parser.add_argument('-r', '--wheel_radius',type = float, help = ' Wheel radius, syntaxis: -r RADIUS')
+parser.add_argument('-w', '--wheel_width',type = float, help = 'Wheel width, syntaxis: -w WIDTH')
+parser.add_argument('-s', '--starting_pose',type = float, nargs = 3, help = 'Usar la sintaxis -s XG YG OG')
+parser.add_argument('-t', '--elapsed_time', type = float, help = 'Time elapsed from start to end in seconds, syntaxis: -t TIME')
+
+args = parser.parse_args()
+inputs = vars(args)
 
 # Pose class contains three arrays that will store vehicle position and orientation values
 class Pose:
@@ -65,41 +78,48 @@ def rotateAroundZ(previousYaw):
     ]) #START ODOMETRY COMPUTATION
     return rotZ
 
+
 # ==== USER INPUTS
-encoderPulses = float(input("Enter quantity of encoder pulses per revolution: "))
-pulses = float(input("Enter quantity of pulses per second: "))
-wheelRadius = float(input("Enter vehicle wheel radius: "))
-width = float(input("Enter vehicle width: "))
-elapsedTime = float(input("Enter the elapsed time: "))
-initialX = float(input("Enter Starting X position: "))
-initialY = float(input("Enter Starting Y position: "))
-initialYaw = float(input("Enter Starting Heading Value -degrees-: "))
+encoder = inputs["encoder_pulses"]
+pulses = inputs["pulses_per_second"]
 
-pulsesValueLeft = np.random.normal(loc=pulses,scale = pulses*0.05)
-pulsesValueRight= np.random.normal(loc=pulses,scale = pulses*0.05)
+pulses_left = np.random.normal(loc=pulses[0],scale = pulses[0]*0.05)
+pulses_right = np.random.normal(loc=pulses[1],scale = pulses[1]*0.05)
 
-RPSLeft = pulsesValueLeft/encoderPulses
-RPSRight = pulsesValueRight/encoderPulses
+rps_left = pulses_left/encoder
+rps_right = pulses_right/encoder
 
-leftSpeed = RPSLeft*2*np.pi
-rightSpeed = RPSRight*2*np.pi
+leftSpeed = rps_left*2*np.pi
+rightSpeed = rps_right*2*np.pi
+
+startPose = inputs["starting_pose"]
+initialX = startPose[0]
+initialY = startPose[1]
+initialYaw = startPose[2]
 
 # ==== Physical Parameters of the Differential Mobile Robot SETUP ====
-LWheelRad = np.random.normal(loc=wheelRadius,scale = wheelRadius*0.05)
-RWheelRad = np.random.normal(loc=wheelRadius,scale = wheelRadius*0.05)
-WHEELRADIUS = [LWheelRad,RWheelRad] # in mts
-myRobot = Robot(0.0,0.0,0.0)
+left_radius = np.random.normal(loc=inputs["wheel_radius"],scale = inputs["wheel_radius"]*0.05)
+right_radius = np.random.normal(loc=inputs["wheel_radius"],scale = inputs["wheel_radius"]*0.05)
+WHEELRADIUS = [left_radius,right_radius]
 
 #Wheel circumference 
-cir_left = 2*np.pi*LWheelRad
-cir_right = 2*np.pi*RWheelRad
+cir_left = 2*np.pi*left_radius
+cir_right = 2*np.pi*right_radius
 
+#Angular speed
+left_ls = rps_left*cir_left
+right_ls = rps_right*cir_right
+
+WIDTHCONTACTPOINT = inputs["wheel_width"]
+myRobot = Robot(0.0,0.0,0.0)
 
 # ==== TIME REQUIREMENTS SETUP ====
 # Setup elapsed time and sampling-rate for the test
+elapsedTime = inputs["elapsed_time"]
 samplingRate = 0.25
+
 # ==== POSE VECTOR SIZE CALCULATION === 
-vectorSize = (elapsedTime/samplingRate) + 1
+vectorSize = elapsedTime/samplingRate
 poseEstimation = Pose(int(vectorSize))
 # ==== INITIAL POSE VALUES GOES TO 1st VALUE IN POSE VECTOR ====
 # Variable of control to store into the Pose vector positions
@@ -128,7 +148,7 @@ while time.time() < endTime:
     if (currentTime-pastTime) >= samplingRate:
         currentIndex += 1
         rotZMat = rotateAroundZ(poseEstimation.yaw[currentIndex-1])
-        robotSpeedData = vehicleParameters(rightSpeed,leftSpeed,WHEELRADIUS, width)
+        robotSpeedData = vehicleParameters(rightSpeed,leftSpeed,WHEELRADIUS, WIDTHCONTACTPOINT)
         computeOdometry(currentIndex, rotZMat, robotSpeedData)
         pastTime = currentTime
         print("Count: ", currentIndex)
@@ -136,22 +156,10 @@ while time.time() < endTime:
 # === LATELY, DISPLAY SAMPLED POSES ====
 # Print final pose values
 print("Pose Values: ")
-print("x: ", poseEstimation.x)
-print("y: ", poseEstimation.y)
-print("yaw: ", poseEstimation.yaw)
-
-# Calculate Odometry values 
-lrps = pulsesValueLeft/encoderPulses
-rrps = pulsesValueRight/encoderPulses
-
-leftAngularSpeed = lrps * 2 * np.pi
-rightAngularSpeed = rrps * 2 * np.pi
-
-leftLinearSpeed = lrps * wheelRadius*2
-rightLinearSpeed = rrps * wheelRadius*2
-
-# Print final speed values
-print("Left Angular Speed:", leftAngularSpeed)
-print("Right Angular Speed:", rightAngularSpeed)
-print("Left Linear Speed:", leftLinearSpeed)
-print("Right Linear Speed:", rightLinearSpeed)
+print("x: ", np.round(poseEstimation.x,3))
+print("y: ", np.round(poseEstimation.y,3))
+print("yaw: ", np.round(poseEstimation.yaw,3))
+print("left angular speed: ",np.round(leftSpeed,5))
+print("right angular speed: ",np.round(rightSpeed,5))
+print("left linear speed: ",np.round(left_ls,5))
+print("right linear speed: ",np.round(right_ls,5))
