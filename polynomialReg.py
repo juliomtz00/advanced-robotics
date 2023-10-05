@@ -35,5 +35,5 @@ equation = sp.Eq(matrix * vector, final)
 solution = sp.solve(equation,[a,b,c])
 print(solution)
 
-SSE = [np.power(y[i] - solution['a']*x2[i] - solution['b']*x[i] - solution['c'],2)for i in range(len(x))]
+SSE = [np.power(y[i] - solution[a]*x2[i] - solution[b]*x[i] - solution[c],2)for i in range(len(x))]
 print(SSE)
