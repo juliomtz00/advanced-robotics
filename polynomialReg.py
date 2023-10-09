@@ -37,3 +37,6 @@ solution = sp.solve(equation,[a,b,c])
 SSE = [np.power(y[i] - solution[a]*x2[i] - solution[b]*x[i] - solution[c],2)for i in range(len(x))]
 SST = [np.power(y[i]-np.average(y),2)for i in range(len(x))]
 
+r2 = 1 - (np.sum(SSE)/np.sum(SST))
+
+print(r2)

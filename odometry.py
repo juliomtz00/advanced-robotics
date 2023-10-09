@@ -1,5 +1,5 @@
 import time
-# Universal standar to work with numerical data in Python
+# Universal standard to work with numerical data in Python
 import numpy as np
 import random
 
