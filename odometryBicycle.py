@@ -1,5 +1,5 @@
 import time
-# Universal standar to work with numerical data in Python
+# Universal standard to work with numerical data in Python
 import numpy as np
 import random
 
@@ -19,6 +19,7 @@ class Robot:
         self.xSpeed = xSpeed
         self.ySpeed = ySpeed
         self.turningVel = turningVel
+
     def update(self, newXSpeed, newYSpeed, newTurnSpeed):
         self.xSpeed = newXSpeed
         self.ySpeed = newYSpeed
@@ -39,11 +40,12 @@ def computeOdometry(index2Updte, rotData, velocityData):
     poseEstimation.yaw[index2Updte] = previousPose[2] + velocititesFactor[2]
     
     
-# Compute current vehicle speed and orientation variables
-def vehicleParameters(rightWheelSpeed, leftWheelSpeed, wheelRadius, widthValue):
-    localXSpeed = ((wheelRadius*rightWheelSpeed)/2)+((wheelRadius*leftWheelSpeed)/2)
-    localTurninigSpeed = (wheelRadius*rightWheelSpeed/(2*widthValue))-(wheelRadius*leftWheelSpeed/(2*widthValue))
-    myRobot.update(localXSpeed, 0, localTurninigSpeed)
+# Compute current vehicle speed and orientation variables based on Bicycle Kinematic Model
+def vehicleParameters(deltaAngle, wheelBase, rightWheelSpeed, leftWheelSpeed):
+    localXSpeed = (wheelBase / 2) * (rightWheelSpeed + leftWheelSpeed)
+    localYSpeed = 0  # Bicycle model doesn't have lateral speed
+    localTurningSpeed = (wheelBase / (2 * wheelBase)) * (rightWheelSpeed - leftWheelSpeed) + deltaAngle
+    myRobot.update(localXSpeed, localYSpeed, localTurningSpeed)
     localRobotSpeed = np.array([
         [myRobot.xSpeed],
         [myRobot.ySpeed],
@@ -66,20 +68,34 @@ def rotateAroundZ(previousYaw):
 # ==== USER INPUTS
 encoderPulses = float(input("Enter quantity of encoder pulses per revolution: "))
 pulses = float(input("Enter quantity of pulses per second: "))
-WHEELRADIUS = float(input("Enter vehicle wheel radius: "))
+wheelRadius = float(input("Enter vehicle wheel radius: "))
 width = float(input("Enter vehicle width: "))
 elapsedTime = float(input("Enter the elapsed time: "))
 initialX = float(input("Enter Starting X position: "))
 initialY = float(input("Enter Starting Y position: "))
 initialYaw = float(input("Enter Starting Heading Value -degrees-: "))
+deltaAngle = float(input("Enter Delta Angle (degrees): "))
+wheelBase = float(input("Enter WheelBase (m): "))
 
-RPS = pulses/encoderPulses
+pulsesValueLeft = np.random.normal(loc=pulses,scale = pulses*0.05)
+pulsesValueRight= np.random.normal(loc=pulses,scale = pulses*0.05)
 
-leftSpeed = RPS*2*np.pi
-rightSpeed = RPS*2*np.pi
+RPSLeft = pulsesValueLeft/encoderPulses
+RPSRight = pulsesValueRight/encoderPulses
+
+leftSpeed = RPSLeft*2*np.pi
+rightSpeed = RPSRight*2*np.pi
 
 # ==== Physical Parameters of the Differential Mobile Robot SETUP ====
+LWheelRad = np.random.normal(loc=wheelRadius,scale = wheelRadius*0.05)
+RWheelRad = np.random.normal(loc=wheelRadius,scale = wheelRadius*0.05)
+WHEELRADIUS = [LWheelRad,RWheelRad] # in mts
 myRobot = Robot(0.0,0.0,0.0)
+
+#Wheel circumference 
+cir_left = 2*np.pi*LWheelRad
+cir_right = 2*np.pi*RWheelRad
+
 
 # ==== TIME REQUIREMENTS SETUP ====
 # Setup elapsed time and sampling-rate for the test
@@ -106,19 +122,18 @@ pastTime = (endTime - elapsedTime)
 
 # === START ODOMETRY COMPUTATION ====
 # As long as current time is less than endTime
-while time.time() <= endTime:
+while time.time() < endTime:
 #    print("Pass time: ", pastTime)
 #    print("Count: ", currentIndex)
 #    print("Delta Time: ", time.time()-pastTime)
     currentTime = time.time()
     if (currentTime-pastTime) >= samplingRate:
+        currentIndex += 1
         rotZMat = rotateAroundZ(poseEstimation.yaw[currentIndex-1])
-        robotSpeedData = vehicleParameters(rightSpeed,leftSpeed,WHEELRADIUS, width)
+        robotSpeedData = vehicleParameters(np.radians(deltaAngle),wheelBase,rightSpeed,leftSpeed)
         computeOdometry(currentIndex, rotZMat, robotSpeedData)
         pastTime = currentTime
         print("Count: ", currentIndex)
-        currentIndex += 1
-
     
 # === LATELY, DISPLAY SAMPLED POSES ====
 # Print final pose values
@@ -127,12 +142,15 @@ print("x: ", poseEstimation.x)
 print("y: ", poseEstimation.y)
 print("yaw: ", poseEstimation.yaw)
 
+# Calculate Odometry values 
+lrps = pulsesValueLeft/encoderPulses
+rrps = pulsesValueRight/encoderPulses
 
-leftAngularSpeed = RPS * 2 * np.pi
-rightAngularSpeed = RPS * 2 * np.pi
+leftAngularSpeed = lrps * 2 * np.pi
+rightAngularSpeed = rrps * 2 * np.pi
 
-leftLinearSpeed = RPS * WHEELRADIUS*2*np.pi
-rightLinearSpeed = RPS * WHEELRADIUS*2*np.pi
+leftLinearSpeed = lrps * wheelRadius*2
+rightLinearSpeed = rrps * wheelRadius*2
 
 # Print final speed values
 print("Left Angular Speed:", leftAngularSpeed)
