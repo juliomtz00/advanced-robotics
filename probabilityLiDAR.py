@@ -4,9 +4,9 @@ from scipy.stats import norm
 import numpy as np
 
 # Open the csv file for reading
-Data1 = pd.read_csv('/Users/sntggrz/Documents/RoboticaAvanzada/code/A2.5/ASPHALT01_UDEMPLBLD01F28MOD.csv', header=None)
-Data2 = pd.read_csv('/Users/sntggrz/Documents/RoboticaAvanzada/code/A2.5/EARTH01_UDEMSCFLDF20MOD.csv', header=None)
-Data3 = pd.read_csv('/Users/sntggrz/Documents/RoboticaAvanzada/code/A2.5/GRASS01_UDEMSMBRDF22MOD.csv', header=None)
+Data1 = pd.read_csv('ASPHALT01_UDEMPLBLD01F28MOD.csv', header=None)
+Data2 = pd.read_csv('EARTH01_UDEMSCFLDF20MOD.csv', header=None)
+Data3 = pd.read_csv('GRASS01_UDEMSMBRDF22MOD.csv', header=None)
 
 #print(asphaltData[1])
 
@@ -29,8 +29,8 @@ if methodOne:
     pdf2 = norm.pdf(bins2, loc=params2[0], scale=params2[1])
     pdf3 = norm.pdf(bins3, loc=params3[0], scale=params3[1])
     # Overlay the PDF curve for Data 1 on the histogram
-    plt.plot(bins1, pdf1, 'r-', linewidth=2, label='PDF1 of Asphalt')
-    plt.plot(bins2, pdf2, 'r-', linewidth=2, label='PDF2 of Asphalt')
+    plt.plot(bins1, pdf1, 'b-', linewidth=2, label='PDF1 of Asphalt')
+    plt.plot(bins2, pdf2, 'g-', linewidth=2, label='PDF2 of Asphalt')
     plt.plot(bins3, pdf3, 'r-', linewidth=2, label='PDF3 of Asphalt')
 else:
     x1 = np.linspace(np.min(Data1[1]), np.max(Data1[1]))
