@@ -21,6 +21,16 @@ hist1, bins1, _ = plt.hist(Data1[1], bins=15, density=True, alpha=0.7, color='re
 hist2, bins2, _ = plt.hist(Data2[1], bins=15, density=True, alpha=0.7, color='blue', label='Earth')
 hist3, bins3, _ = plt.hist(Data3[1], bins=15, density=True, alpha=0.7, color='green', label='Grass')
 
+# Normalize the histograms
+hist1 /= np.sum(hist1)
+hist2 /= np.sum(hist2)
+hist3 /= np.sum(hist3)
+
+# Fit a normal distribution to Data 1
+params1 = norm.fit(Data1[1])
+params2 = norm.fit(Data2[1])
+params3 = norm.fit(Data3[1])
+
 # Obtain the mean from the data
 mean1 = np.sum(0.5 * (bins1[1:] + bins1[:-1]) * hist1)
 mean2 = np.sum(0.5 * (bins2[1:] + bins2[:-1]) * hist2)
@@ -31,15 +41,10 @@ sd1 = np.sqrt(np.sum(hist1 * ((0.5 * (bins1[1:] + bins1[:-1]) - mean1) ** 2)))
 sd2 = np.sqrt(np.sum(hist2 * ((0.5 * (bins2[1:] + bins2[:-1]) - mean2) ** 2)))
 sd3 = np.sqrt(np.sum(hist3 * ((0.5 * (bins3[1:] + bins3[:-1]) - mean3) ** 2)))
 
-# Fit a normal distribution to Data 1
-params1 = norm.fit(Data1[1])
-params2 = norm.fit(Data2[1])
-params3 = norm.fit(Data3[1])
-
 # Compute the particular equation
 x,fx = sp.symbols('x,f(x)')
-eq1 = sp.pretty(sp.Eq(fx,1/(sd1*sp.sqrt(2*np.pi))*sp.exp(-(1/2)*((x-mean1)/sd1)**2),simplify=False),use_unicode=True)
-eq2 = sp.Eq(fx,1/(x*sd2*sp.sqrt(2*np.pi))*sp.exp(-(1/2)*((sp.log(x)-mean2)**2/(sd1)**2)),simplify=False)
+eq1 = sp.Eq(fx,1/(sd1*sp.sqrt(2*np.pi))*sp.exp(-(1/2)*((x-mean1)/sd1)**2),simplify=False)
+eq2 = sp.Eq(fx,1/(sd2*sp.sqrt(2*np.pi))*sp.exp(-(1/2)*((x-mean2)/sd1)**2),simplify=False)
 eq3 = sp.Eq(fx,1/(sd3*sp.sqrt(2*np.pi))*sp.exp(-(1/2)*((x-mean3)/sd1)**2),simplify=False)
 
 
