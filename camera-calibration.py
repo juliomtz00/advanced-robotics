@@ -19,6 +19,10 @@ parser.add_argument("--path_to_calibration_images",
                     type=str, 
                     default='calibration-images',
                     help="Folder where the calibration images are")
+parser.add_argument("--path_to_colored_images", 
+                    type=str, 
+                    default='colored-images',
+                    help="Folder where the colored images are")
 parser.add_argument("--path_to_distorted_images",
                     type=str,
                     default='distorted-images',
@@ -62,7 +66,7 @@ path_to_calibration_images = args.path_to_calibration_images
 path_to_undistorted_images = args.path_to_undistorted_images
 
 # Load calibration images
-images = glob.glob(path_to_calibration_images+'*.JPG')
+images = glob.glob(path_to_calibration_images+'*.png')
 
 
 # Create a new window for visualisation purposes
@@ -109,6 +113,9 @@ for fname in images:
 
         # Visualise current calibration image with detected corners
         cv.imshow('Current calibration image', img)
+        path_to_colored_images=args.path_to_colored_images
+        img_names = fname.split('/')[-1]
+        cv.imwrite(path_to_colored_images+img_names, img)
         cv.waitKey(200)
 
         print("Corner detection completed!")
@@ -144,7 +151,7 @@ print("""
 
 # Load calibration images
 path_to_distorted_images=args.path_to_distorted_images
-images = glob.glob(path_to_distorted_images+'*.JPG')
+images = glob.glob(path_to_distorted_images+'*.png')
 
 # Loop through distorted images
 for fname in images:
