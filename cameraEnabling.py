@@ -39,6 +39,7 @@ cv2.namedWindow("Camera Frame", cv2.WINDOW_NORMAL)
 # Create a video capture object for video streaming
 camera_index = args.cam_index
 video_capture = cv2.VideoCapture(camera_index)
+video_capture.set(cv2.CAP_PROP_AUTOFOCUS, 0) # turn the autofocus off
 
 # Calculate the image measurements of the camera through the functions of the opencv library.
 image_width = float(video_capture.get(cv2.CAP_PROP_FRAME_WIDTH))
