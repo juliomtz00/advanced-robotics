@@ -16,6 +16,7 @@ signQuadrantY = signQuadrantX
 path_to_undistorted_images = 'lab-project-images/undistorted-images/*.png'
 t
 
+
 # Load calibration images
 images = glob.glob(path_to_undistorted_images)
 
