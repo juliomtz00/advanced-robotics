@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # Read image
-originalImage = cv2.imread('pattern_T03.jpeg')
+originalImage = cv2.imread('lab-project-images/undistorted-images/frame-0000.png')
 grayImage = cv2.cvtColor(originalImage, cv2.COLOR_BGR2GRAY)
 imageHistogram = cv2.calcHist([grayImage],[0],None,[256],[0,256])
 
@@ -65,6 +65,7 @@ if segmentation:
         originalImage = cv2.drawContours(originalImage, [cnt], -1, (0,255,255), 3)
         # compute the center of mass of the triangle
         M = cv2.moments(cnt)
+        print(M)
         if M['m00'] != 0.0:
            centroidU = int(M['m10']/M['m00'])
            centroidV = int(M['m01']/M['m00'])
@@ -99,10 +100,3 @@ slope = (centroidV - midPoint[1]) / (centroidU - midPoint[0])
 print(f'Midpoint (x, y): {midPoint}')
 print(f'Slope: {slope:.2f}')
 """
-
-
-
-
-
-
-
