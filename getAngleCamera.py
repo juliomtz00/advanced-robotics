@@ -1,68 +1,8 @@
 import cv2
 import numpy as np
+import matplotlib.pyplot as plt
 
-# Signos de los cuadrantes naturalmente positivos, solo se transforma para eje X
-# signQuadrantX = 1
-# ------------------------------------------------------------------------------
-# LO ANTERIOR SOLO APLICA PARA UN EJE COORDENADO NORMAL, NO EL QUE DA EL CV2
-# Para el cv2 el cuadrante que se transforma sera la del eje Y
-angle_values = []
-
-# Reading an image using OpenCV, extracting its height and width, and converting it to grayscale.
-# Create a new window
-cv2.namedWindow("Camera Frame", cv2.WINDOW_NORMAL)
-
-# Create a video capture object for video streaming
-camera_index = 0 # this is the camera index
-video_capture = cv2.VideoCapture(camera_index)
-video_capture.set(cv2.CAP_PROP_AUTOFOCUS, 0) # turn the autofocus off
-
-# Calculate the image measurements of the camera through the functions of the opencv library.
-image_width = float(video_capture.get(cv2.CAP_PROP_FRAME_WIDTH))
-image_height = float(video_capture.get(cv2.CAP_PROP_FRAME_HEIGHT))
-print("IMAGE MEASUREMENTS: height: "+str(image_height)+", width: "+str(image_width))
-
-# Open the calibration file
-calibration_file = open("rob-lab-calib/calibration-parameters.txt", 'r')
-
-# Initialize variables to store mtx and dist
-mtx = None
-dist = None
-
-# Loop through each line in the calibration file
-for line in calibration_file:
-    line = line.rstrip()
-
-    # Check if the line contains information about mtx
-    if line.startswith('mtx:'):
-        # Extract the matrix values from the line and convert them to a NumPy array
-        mtx_values = np.array(eval(line[4:]))
-        mtx = mtx_values.reshape((3, 3))  # Assuming mtx is a 3x3 matrix
-
-    # Check if the line contains information about dist
-    elif line.startswith('dist:'):
-        # Extract the matrix values from the line and convert them to a NumPy array
-        dist_values = np.array(eval(line[5:]))
-        dist = dist_values.reshape((1, -1))  # Assuming dist is a 1xN matrix
-
-# Close the calibration file
-calibration_file.close()
-
-# If camera opens correctly
-i = 0
-
-while(video_capture.isOpened()):
-
-    #Get the current frame and pass it on to 'frame''
-    #If the current frame cannot be captured, ret = 0
-    ret,frame = video_capture.read()
-
-    
-
-    # If ret=0
-    if not ret:
-        print("Frame missed!")
-
+def computeAngle(frame,mtx,dist,angle_values):
     # Get size
     h,  w = frame.shape[:2]
 
@@ -74,11 +14,6 @@ while(video_capture.isOpened()):
 
     # Convert image to gray
     grayImage = cv2.cvtColor(dst, cv2.COLOR_BGR2GRAY)
-
-    key = cv2.waitKey(1)
-    
-    if key == ord('q'):
-        break
 
     # Applying binarization to the grayscale image using a threshold value.
     binarization = True
@@ -163,7 +98,8 @@ while(video_capture.isOpened()):
                 cv2.drawContours(dst, [filtered_last], -1, (0, 255, 255), 3)         # YELLOW
                 # -------------------------------------------------------------
                  # If so, it is then visualised
-                cv2.putText(dst, f'Angle:{round(average_angle,3)}', (centroidU, centroidV), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 0), 2)
-                cv2.imshow("Camera Frame", dst)
+                #cv2.putText(dst, f'Angle:{round(average_angle,3)}', (centroidU, centroidV), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 0), 2)
+
+                return dst, angle_values, angle
             else:
                 print('Error')
